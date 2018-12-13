@@ -1,23 +1,34 @@
 \documentclass[11pt,a4paper]{scrartcl}
 \usepackage[margin=2cm]{geometry}
-\usepackage[backend=biber,style=verbose,autocite=footnote]{biblatex}
-\bibliography{bibfile}
+% Encoding
 \usepackage[utf8]{inputenc}
-
+% Bibliography
+\usepackage[backend=biber,style=ieee]{biblatex}
+\bibliography{bibfile}
+\usepackage[hidelinks]{hyperref} % Clickable links
 % Header
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-\lhead{COMS10005 Coursework 2 - Jacob Halsey}
-
+\lhead{COMS10005 Coursework 2}
+\rhead{}
 
 \begin{document}
 	
 \section*{Password Security: KeePass Password Safe}
 
-asdf
+There are a number of recommendations that should be followed in order to use passwords securely. 
+First of all a password needs to be sufficiently long and complex (i.e. drawn from a large set of characters) to make a brute force attack infeasible. Especially in the absence of rate-limiting or account blocking after failed attempts; such as when using poorly developed applications or if there is a possibility of an offline attack. \cite{nist_password_2017}
+Secondly, dictionary words, common or previously compromised passwords, context related information (e.g. the website name), or easily obtained personal information (e.g. birthdays, phone numbers) should not be used to create a password. Otherwise the password would be vulnerable to dictionary attacks (a type of brute force attack where only likely possibilities are attempted).
+Finally the password should be kept private, never stored in a plain text file or written down. \cite{cern_computer_security_information}\\
+
+These requirements are further complicated by the importance of using unique passwords for different services. If one of these services were attacked and the password exposed, the attacker could gain access to any other services using the same password. There are many reasons why this could be possible, some examples include: An application that fails to properly implement password hashing, for example not using salt makes the passwords vulnerable to rainbow table attacks (using precomputed hashes). Or misconfigured server logging may capture and store passwords as plain text.\\
+
+The more services that a person uses it becomes increasingly difficult for them to remember good unique passwords for each one. Research by Experian plc found that 'people have on average up to 26 online accounts protected by only five different passwords' \cite{experian_2016}. In my personal experience I found that I was using the same password for countless different websites, all using the same email address. Therefore I decided that it was necessary to start using a password manager. 
 
 \section*{Using LDAPS for centralised authentication}
 	
 asdf
+
+\printbibliography
 
 \end{document}
