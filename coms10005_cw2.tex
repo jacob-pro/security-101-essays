@@ -12,6 +12,10 @@
 \pagestyle{fancy}
 \lhead{COMS10005 Coursework 2}
 \rhead{}
+%Figures
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage{subfig}
 
 \begin{document}
 	
@@ -46,8 +50,16 @@ Whereas as soon as I sign in to KeePass they would gain immediate access to all 
 
 \section*{Using LDAPS for centralised authentication}
 \begin{refsection}
-	
+
 The design o
+
+\begin{figure}[h]
+	\centering
+	\subfloat[Packet Text]{{\includegraphics[width=3cm,keepaspectratio]{ldap_data}}}
+	\qquad
+	\subfloat[Packet details]{{\includegraphics[width=11cm,keepaspectratio]{ldap_formatted}}}
+	\caption{Wireshark packet capture of an unencrypted LDAP bind request}
+\end{figure}
 
 \printbibliography
 \end{refsection}
