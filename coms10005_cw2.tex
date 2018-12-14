@@ -79,7 +79,7 @@ To solve this problem I decided to enable Secure LDAP (LDAPS), which uses TLS to
 	\item The Ubuntu servers should now be configured to connect securely to LDAPS on port 636 using the AD server's FQDN.
 \end{enumerate}
 
-Whilst the communication between servers is now secured, I am no longer sure if a centralised authentication setup is the overall best approach. Now that I am using a password manager maintaining multiple sets of credentials is of little concern to me. Instead I am concerned that the attack surface has been increased because the same set of credentials are moving through software products provided by numerous different vendors, if just one of these were to be exploited, then the attacker would be able to gain a set of credentials capable of accessing all the other services \cite{huque_ldap,newington_ldap}.
+Whilst the communication between servers is now secured, I am no longer sure if a centralised authentication setup is the overall best approach. Now that I am using a password manager having to maintain multiple sets of credentials is of little concern to me. I am instead concerned that the attack surface has been increased because the same set of credentials are moving through software products provided by numerous different vendors, if just one of these were to be exploited, then the attacker would be able to gain a set of credentials capable of accessing all the other services \cite{huque_ldap,newington_ldap}.
 
 \printbibliography
 
