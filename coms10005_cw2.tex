@@ -53,9 +53,9 @@ Whereas as soon as I sign in to KeePass they would gain immediate access to all 
 \section*{Using LDAPS for centralised authentication}
 \begin{refsection}
 
-I currently have two Ubuntu servers, one running Seafile (a file server) \cite{seafile}, and another running Gogs (a Git service) \cite{gogs}. Instead of having to maintain multiple sets of credentials, I had configured these servers to centrally authenticate users using LDAP with my Active Directory server. All three servers are connected to the same Ethernet network switch and VLAN. The network does not use any form of access control (such as 802.1X) and it is also accessible via Wi-Fi using a pre-shared key.
+I currently have two Ubuntu servers, one running Seafile (a file server) \cite{seafile}, and another running Gogs (a Git service) \cite{gogs}. Instead of having to maintain multiple sets of credentials, I had configured these servers to centrally authenticate users using LDAP \cite{RFC4510} with my Active Directory server. All three servers are connected to the same Ethernet network switch and VLAN. The network does not use any form of access control (such as 802.1X) and it is also accessible via Wi-Fi using a pre-shared key.
 
-I realised that this setup created a potential security weakness because by default LDAP traffic is not encrypted \cite{microsoft_enable_ldaps}. For example, figure \ref{fig:wireshark_ldap} shows part of the LDAP data that is transmitted as plaintext over the network when I attempted to login to the Gogs server:
+I realised that this setup created a potential security weakness because by default LDAP traffic is not encrypted \cite[sec 6.1]{RFC4513} \cite{microsoft_enable_ldaps}. For example, figure \ref{fig:wireshark_ldap} shows part of the LDAP data that is transmitted as plaintext over the network when I attempted to login to the Gogs server:
 
 \begin{figure}[h]
 	\centering
@@ -69,7 +69,7 @@ I realised that this setup created a potential security weakness because by defa
 Although during normal Ethernet operation a frame sent from one node to another node will not be seen by other nodes on the network (aside from during the initial MAC learning process)\footnote{And also when using an Ethernet hub; the network functions as a bus, however these are rarely used today.}, there are at least three types of attack that could be used to manipulate the flow of Ethernet traffic between the servers\footnote{There are other types of layer 2 attacks (e.g. an STP root bridge attack), but they are not really relevant to my network configuration.}, allowing an attacker to intercept the unencrypted credentials.
 These include: MAC address spoofing, CAM table overflows, and ARP spoofing\footnote{In actual fact the servers are configured to use IPv6 which does not use ARP, but rather NDP, however the concept is the same.} \cite{l2attacks}.
 While there are various methods to counter these attacks, including various port security tools provided on some Ethernet switches \cite[193]{odom_icnd1}.
-None of these are ideal solutions on my network because the Ethernet switches do not have consistent support for these features, and it would add significant management overhead to maintain their configuration.
+None of these are ideal solutions for my network because the Ethernet switches do not have consistent support for these features, and it would add significant management overhead to maintain their configuration.
 
 To solve this problem I decided to enable Secure LDAP (LDAPS), which uses TLS to authenticate and encrypt communication between the servers. The following steps were required to do so \cite{microsoft_enable_ldaps, ad_ldaps_gist}:
 \begin{enumerate}
@@ -79,7 +79,7 @@ To solve this problem I decided to enable Secure LDAP (LDAPS), which uses TLS to
 	\item The Ubuntu servers should now be configured to connect securely to LDAPS on port 636 using the AD server's FQDN.
 \end{enumerate}
 
-Whilst the communication between servers is now secured, I am no longer sure if the centralised authentication setup is the overall best approach. Now that I am using a password manager maintaining multiple sets of credentials is of little concern to me. Instead I am concerned that the attack surface has been increased because the same set of credentials are moving through software products provided by numerous different vendors, if just one of these were to be exploited, e.g. the Gogs server, then the attacker would gain access to my entire network.
+Whilst the communication between servers is now secured, I am no longer sure if a centralised authentication setup is the overall best approach. Now that I am using a password manager maintaining multiple sets of credentials is of little concern to me. Instead I am concerned that the attack surface has been increased because the same set of credentials are moving through software products provided by numerous different vendors, if just one of these were to be exploited, then the attacker would be able to gain a set of credentials capable of accessing all the other services \cite{huque_ldap,newington_ldap}.
 
 \printbibliography
 
