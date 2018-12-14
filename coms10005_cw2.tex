@@ -1,5 +1,6 @@
-\documentclass[11pt,a4paper,parskip]{scrartcl}
+\documentclass[11pt,a4paper]{scrartcl}
 \usepackage[margin=2cm]{geometry}
+\setlength{\parskip}{5pt}
 % Encoding
 \usepackage[utf8]{inputenc}
 % Bibliography
@@ -16,6 +17,7 @@
 	
 \section*{Password Security: KeePass Password Safe}
 \begin{refsection}
+
 There are a number of recommendations that should be followed in order to use passwords securely. 
 First of all a password needs to be sufficiently long and complex (i.e. drawn from a large set of characters) to make a brute force attack infeasible. Especially in the absence of rate-limiting or account blocking after failed attempts; such as when using poorly developed applications or if there is a possibility of an offline attack \cite{nist_password_2017}.
 Secondly, dictionary words, common or previously compromised passwords, context related information (e.g. the website name), or easily obtained personal information (e.g. birthdays, phone numbers) should not be used to create a password. Otherwise the password would be vulnerable to dictionary attacks (a type of brute force attack where only likely possibilities are attempted).
@@ -30,10 +32,11 @@ A possible solution to this problem was to use a password manager \cite{ncsc_pas
 
 I elected to use KeePass Password Safe \cite{keepass_home}, it has the advantage of being free and open source, although compared to premium services (such as LastPass) it does require the user to be entirely responsible for storing and synchronising the database file. Fortunately in my situation this was not a problem as I was already was self hosting a Seafile file server. This setup adds a further layer of security because not only is the KeePass database file encrypted itself with its own password, no external parties can gain access to the file because it is only stored on my own encrypted disks and it is synchronised between them over HTTPS.
 
-When using KeePass on a desktop environment\footnote{If you use a clipboard manager (I use Ditto), an exclusion should be added to prevent capturing KeePass entries, which would otherwise get stored as plaintext} 
-I have installed KeePassHttp, a plugin that exposes the database through a HTTP server, making entries accessible to browser plugins such as chromeIPass\footnote{The server is bound exclusively to the localhost / loopback interface, and a preshared AES key stored in the database is used to encrypt the traffic between the two applications.}. Not only does browser integration improve usability it  potentially adds protection against phishing: The browser plugin will only extract entries from KeePass when the present URL matches the database value, therefore the chance of being fooled by a phishing site is reduced because the user would notice that the password fields are not being populated \cite{ncsc_pass_managers}.
+When using KeePass on a desktop environment\footnote{If you use a clipboard manager (I use Ditto), an exclusion should be added to prevent capturing KeePass entries, which would otherwise get saved as plaintext} 
+I have installed KeePassHttp, a plugin that exposes the database through a HTTP server, making entries accessible to browser plugins such as chromeIPass\footnote{The server is bound exclusively to the localhost / loopback interface, and a preshared AES key stored in the database is used to encrypt the traffic between the two applications.}. Not only does browser integration improve usability it  potentially adds protection against phishing: The browser plugin will only extract entries from KeePass when the present URL matches the database value, therefore the chance of being fooled by a phishing site is reduced because I would notice that the password fields are not being populated \cite{ncsc_pass_managers}.
 
-There is one argument against using a password manager some risks of using a password manager  
+There is unfortunately one criticism that can be made against password managers in that they exacerbate the risk of a compromised device\footnote{Such as where an attacker has sufficient privileges to install a key logger or read arbitrary memory}.
+In the absence of a password manager the attacker would have to wait until I signed in on that device (if ever) to each service they are targeting. Whereas as soon as I sign in to KeePass they would gain immediate access to all credentials, including those which may never have been entered on that device. Regardless both scenarios highlight the importance of maintaining good security practices on all devices, because at the point they are totally compromised, password security begins to become irreverent.
 
 \printbibliography
 \end{refsection}
