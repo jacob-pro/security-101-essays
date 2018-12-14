@@ -16,6 +16,8 @@
 \usepackage{graphicx}
 \graphicspath{ {images/} }
 \usepackage{subfig}
+%Per page footnote numbering
+\usepackage[perpage]{footmisc}
 
 \begin{document}
 	
@@ -32,14 +34,14 @@ These requirements are further complicated by the importance of using unique pas
 The more services that a person uses it becomes increasingly difficult for them to remember good unique passwords for each one.
 Research by Experian plc found that 'people have on average up to 26 online accounts protected by only five different passwords' \cite{experian_2016}.
 In my personal experience I found that I was using the same password for countless different websites, all using the same email address. 
-A possible solution to this problem was to use a password manager \cite{ncsc_pass_managers}, this is a utility that removes the need to remember numerous passwords by storing them in an encrypted database accessible using a single master password\footnote{Password managers may also combine the password with other forms of authentication such as a key file}.
+A possible solution to this problem was to use a password manager \cite{ncsc_pass_managers}, this is a utility that removes the need to remember numerous passwords by storing them in an encrypted database accessible using a single master password\footnote{Password managers may also combine the password with other forms of authentication such as a key file.}.
 
-I elected to use KeePass Password Safe \cite{keepass_home}, it has the advantage of being free and open source, although compared to premium services (such as LastPass) it does require the user to be entirely responsible for storing and synchronising the database file. Fortunately in my situation this was not a problem as I was already was self hosting a Seafile file server. This setup adds a further layer of security because not only is the KeePass database file encrypted itself with its own password, no external parties can gain access to the file because it is only stored on my own encrypted disks and it is synchronised between them over HTTPS.
+I elected to use KeePass Password Safe \cite{keepass}, it has the advantage of being free and open source, although compared to premium services (such as LastPass) it does require the user to be entirely responsible for storing and synchronising the database file. Fortunately in my situation this was not a problem as I was already was self hosting a Seafile file server. This setup adds a further layer of security because not only is the KeePass database file encrypted itself with its own password, no external parties can gain access to the file because it is only stored on my own encrypted disks and it is synchronised between them over HTTPS.
 
-When using KeePass on a desktop environment\footnote{If you use a clipboard manager (I use Ditto), an exclusion should be added to prevent capturing KeePass entries, which would otherwise get saved as plaintext} 
+When using KeePass on a desktop environment\footnote{If you use a clipboard manager (I use Ditto), an exclusion should be added to prevent capturing KeePass entries, which would otherwise get saved as plaintext.} 
 I have installed KeePassHttp, a plugin that exposes the database through a HTTP server, making entries accessible to browser plugins such as chromeIPass\footnote{The server is bound exclusively to the localhost / loopback interface, and a preshared AES key stored in the database is used to encrypt the traffic between the two applications.}. Not only does browser integration improve usability it  potentially adds protection against phishing: The browser plugin will only extract entries from KeePass when the present URL matches the database value, therefore the chance of being fooled by a phishing site is reduced because I would notice that the password fields are not being populated \cite{ncsc_pass_managers}.
 
-There is unfortunately one criticism that can be made against password managers in that they exacerbate the risk of a compromised device\footnote{Such as where an attacker has sufficient privileges to install a key logger or read the memory of another process}.
+There is unfortunately one criticism that can be made against password managers in that they exacerbate the risk of a compromised device\footnote{Such as where an attacker has sufficient privileges to install a key logger or read the memory of another process.}.
 In the absence of a password manager the attacker would have to wait until I signed in on that device (if ever) to each service they are targeting. 
 Whereas as soon as I sign in to KeePass they would gain immediate access to all credentials, including those which may never have been entered on that device \cite{citadel_keepass}. Regardless both scenarios highlight the importance of maintaining good security practices on all of my devices; at the point they are totally compromised, having a strong password becomes irreverent.
 
@@ -51,17 +53,36 @@ Whereas as soon as I sign in to KeePass they would gain immediate access to all 
 \section*{Using LDAPS for centralised authentication}
 \begin{refsection}
 
-The design o
+I currently have two Ubuntu servers, one running Seafile (a file server) \cite{seafile}, and another running Gogs (a Git service) \cite{gogs}. Instead of having to maintain multiple sets of credentials, I had configured these servers to centrally authenticate users using LDAP with my Active Directory server. All three servers are connected to the same network switch and VLAN. The network does not use any form of access control (such as 802.1X) and it is also accessible via Wi-Fi using a pre-shared key.
+
+I realised that this setup created a potential security weakness because by default LDAP traffic is not encrypted \cite{microsoft_enable_ldaps}. For example, figure \ref{fig:wireshark_ldap} shows part of the LDAP data that is transmitted as plaintext over the network when I attempted to login to the Gogs server:
 
 \begin{figure}[h]
 	\centering
-	\subfloat[Packet Text]{{\includegraphics[width=3cm,keepaspectratio]{ldap_data}}}
+	\subfloat[Text]{{\includegraphics[width=2.5cm,keepaspectratio]{ldap_data}}}
 	\qquad
-	\subfloat[Packet details]{{\includegraphics[width=11cm,keepaspectratio]{ldap_formatted}}}
-	\caption{Wireshark packet capture of an unencrypted LDAP bind request}
+	\subfloat[Details]{{\includegraphics[width=9cm,keepaspectratio]{ldap_formatted}}}
+	\caption{Wireshark capture of an LDAP bind request}
+	\label{fig:wireshark_ldap}
 \end{figure}
 
+Although during normal Ethernet operation a frame sent from one node to another node will not be seen by other nodes on the network (aside from during the initial MAC learning process)\footnote{And also when using an Ethernet hub; the network functions as a bus, however these are rarely used today.}, there are at least three types of attack that could be used to manipulate the flow of Ethernet traffic between the servers\footnote{There are other types of layer 2 attacks (e.g. an STP root bridge attack), but they are not relevant to my network configuration.}, allowing an attacker to intercept the unencrypted credentials.
+These include: MAC address spoofing, CAM table overflows, and ARP spoofing\footnote{In actual fact the servers are configured to use IPv6 which does not use ARP, but rather NDP, however the concept is the same.}.
+While there are various methods to counter these attacks, including various port security tools provided on Ethernet switches \cite[193]{odom_icnd1}.
+None of these are ideal solutions on my network because the Ethernet switches do not have consistent support for these features, and it would add significant management overhead to maintain their configuration. 
+
+To solve this problem I decided to enable Secure LDAP (LDAPS), which uses TLS to authenticate and encrypt communication between the servers. The following steps were required to do so:
+\begin{enumerate}
+	\item Creating a root certificate (and key pair), and importing it into the trusted store of the domain controller (active directory server).
+	\item Creating a client certificate (and key pair) for the purpose of 'Server Authentication' signed using the root certificate, and with the domain controllers FQDN as the subject. This certificate is then imported into the domain controller's personal store for LDAPS usage.
+	\item The root certificate then needs to be installed on each of the Ubuntu servers \cite{ubuntu_ca_cert} so that they can establish trust of the domain controller's certificate.
+	\item The Ubuntu servers can now be configured to connect securely to LDAPS on port 636 using the domain controllers FQDN.
+\end{enumerate}
+
+Whilst the communication between servers is now secured, I am no longer sure if the centralised authentication setup is the overall best approach. Now that I use a password manager maintaining multiple sets of credentials is of little concern to me. Instead I am concerned that the attack surface is greater because the same set of credentials are moving through software provided by numerous different vendors, if just one of these were to be exploited, e.g. the Gogs server, then the attacker would gain access to my entire network.
+
 \printbibliography
+
 \end{refsection}
 
 \end{document}
