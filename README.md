@@ -2,6 +2,8 @@
 
 Bristol COMS10005_2019 Security 101 (Yr 1), Essay assignments
 
+Confirmed mark: 87 (for both)
+
 ## Coursework 1
 
 
